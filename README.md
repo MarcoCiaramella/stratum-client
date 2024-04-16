@@ -6,7 +6,7 @@ A NodeJS based stratum client for communication with stratum-capable pool.
 
 ## Usage
 ```javascript
-const client = require('stratum-client');
+const client = require('@marco_ciaramella/stratum-client');
 const Client = client({
   server: "grlcgang.com",
   port: 3333,
