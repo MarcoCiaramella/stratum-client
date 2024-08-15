@@ -4,7 +4,7 @@ module.exports = {
   authorize: '{"id":"mining.authorize","method":"mining.authorize","params":["<worker.name>","<worker.pass>"]}\n',
 
   subscribeMethod: "mining.subscribe",
-  subscribe: '{"id": "mining.subscribe", "method": "mining.subscribe", "params": []}\n',
+  subscribe: '{"id": "mining.subscribe", "method": "mining.subscribe", "params": ["<user agent/version>"]}\n',
 
   miningDifficulty: "mining.set_difficulty",
 

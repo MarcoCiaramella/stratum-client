@@ -1,8 +1,8 @@
 const { subscribe } = require('./messageContants');
 
-module.exports = (client, { port, server, onConnect }) => {
+module.exports = (client, { userAgent, port, server, onConnect }) => {
   client.connect(port, server, () => {
-    client.write(subscribe);
+    client.write(subscribe.replace("<user agent/version>", userAgent));
     if (onConnect) {
       onConnect();
     }
