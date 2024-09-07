@@ -7,6 +7,7 @@ const onData = require('./onData');
 const onError = require('./onError');
 const validateConfig = require('./validateConfig');
 const WorkObject = require('./workObject');
+const tls = require('node:tls');
 
 const defaultConfig = {
   "autoReconnectOnError": true
@@ -37,6 +38,10 @@ class Client {
     const workObject = new WorkObject();
 
     this.#client = new net.Socket();
+    if (options.ssl) {
+      //this.#client = new tls.TLSSocket(this.#client);
+      new tls.TLSSocket(this.#client);
+    }
     this.#client.setEncoding('utf8');
 
     connect(this.#client, updatedOptions);
