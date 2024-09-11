@@ -1,13 +1,15 @@
 // stratum+tcp://stratum.antpool.com
-const net = require('net');
 const extend = require('lodash/extend');
-const connect = require('./connect');
 const submitWork = require('./submitWork');
-const onData = require('./onData');
-const onError = require('./onError');
 const validateConfig = require('./validateConfig');
 const WorkObject = require('./workObject');
+const net = require('node:net');
 const tls = require('node:tls');
+const { subscribe } = require('./messageContants');
+const trim = require('lodash/trim');
+const processData = require('./processData');
+
+
 
 const defaultConfig = {
   "autoReconnectOnError": true
@@ -30,6 +32,15 @@ class Client {
     submitWork(worker, job_id, extranonce2, ntime, nonce, this.#client);
   }
 
+  #connect(options) {
+    this.#client = (this.#client ? this.#client : (options.ssl ? tls : net)).connect(options.port, options.server, () => {
+      this.#client.write(subscribe.replace("<user agent/version>", options.userAgent));
+      if (options.onConnect) {
+        options.onConnect();
+      }
+    });
+  }
+
   #start(options) {
     const updatedOptions = extend({}, defaultConfig, options);
 
@@ -37,18 +48,32 @@ class Client {
 
     const workObject = new WorkObject();
 
-    this.#client = new net.Socket();
-    if (options.ssl) {
-      //this.#client = new tls.TLSSocket(this.#client);
-      new tls.TLSSocket(this.#client);
-    }
+    this.#connect(updatedOptions);
     this.#client.setEncoding('utf8');
 
-    connect(this.#client, updatedOptions);
+    this.#client.on('data', data => {
+      data.split('\n').forEach(jsonDataStr => {
+        if (trim(jsonDataStr).length) {
+          try {
+            processData(this.#client, updatedOptions, JSON.parse(trim(jsonDataStr)), workObject);
+          } catch (e) {
+            console.error(e.message);
+          }
+        }
+      });
+    });
 
-    this.#client.on('data', data => onData(this.#client, updatedOptions, data, workObject));
+    this.#client.on('error', error => {
+      const { autoReconnectOnError, onError } = updatedOptions;
+      if (onError) onError(error);
 
-    this.#client.on('error', error => onError(this.#client, updatedOptions, error));
+      if (autoReconnectOnError) {
+        // FIXME
+        this.#connect(updatedOptions);
+      } else {
+        this.#client.destroy(); // kill client after server's response
+      }
+    });
 
     this.#client.on('close', () => {
       if (updatedOptions.onClose) updatedOptions.onClose();
