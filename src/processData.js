@@ -5,10 +5,10 @@ const {
   authorizeMethod,
   authorize,
   subscribeMethod,
-  miningDifficulty,
-  miningNotify,
+  setDifficultyMethod,
+  notifyMethod,
   submitMethod,
-} = require('./messageContants');
+} = require('./methods');
 
 module.exports = (client, updatedOptions, jsonData, workObject) => {
   const key = jsonData.method || jsonData.id;
@@ -37,7 +37,7 @@ module.exports = (client, updatedOptions, jsonData, workObject) => {
         if (result) fnSuccess(error, result);
         else fnFailure(error, result);
       }
-    case miningDifficulty:
+    case setDifficultyMethod:
       if (params && params.length > 0) {
         workObject.miningDiff = params[0];
         if (onNewDifficulty) onNewDifficulty(params[0]);
@@ -56,7 +56,7 @@ module.exports = (client, updatedOptions, jsonData, workObject) => {
         client.write(authorize.replace("<worker.name>", worker).replace("<worker.pass>", defaultTo(password, 'x')));
       }
       break;
-    case miningNotify:
+    case notifyMethod:
       {
         let index = -1;
         extend(workObject, {
