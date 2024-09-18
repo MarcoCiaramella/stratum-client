@@ -66,24 +66,6 @@ class Client {
     });
     this.#client.on('close', () => {
       if (options.onClose) options.onClose();
-      /*
-        For some reason, corrupted data keeps streaming. This is a hack.
-        With this hack, I am ensuring that no more callbacks are called
-        after closing the connection (closing from our end)
-      */
-      extend(options, {
-        onConnect: null,
-        onClose: null,
-        onError: null,
-        onAuthorize: null,
-        onAuthorizeSuccess: null,
-        onAuthorizeFail: null,
-        onNewDifficulty: null,
-        onSubscribe: null,
-        onNewMiningWork: null,
-        onSubmitWorkSuccess: null,
-        onSubmitWorkFail: null,
-      });
     });
   }
 
