@@ -31,14 +31,16 @@ class Client {
     submitWork(worker, job_id, extranonce2, ntime, nonce, this.#client);
   }
 
+  #onConnect(options) {
+    this.#client.write(subscribe.replace("<user agent/version>", options.userAgent));
+    if (options.onConnect) {
+      options.onConnect();
+    }
+  }
+
   #connect(options) {
     const workObject = new WorkObject();
-    this.#client = (options.ssl ? tls : net).connect(options.port, options.server, () => {
-      this.#client.write(subscribe.replace("<user agent/version>", options.userAgent));
-      if (options.onConnect) {
-        options.onConnect();
-      }
-    });
+    this.#client = (options.ssl ? tls : net).connect(options.port, options.server, () => this.#onConnect(options));
     this.#client.setEncoding('utf8');
     this.#client.on('data', data => {
       data.split('\n').forEach(jsonDataStr => {
@@ -55,10 +57,11 @@ class Client {
       const { autoReconnectOnError, onError } = options;
       if (onError) onError(error);
 
-      this.#client.destroy();
-
       if (autoReconnectOnError) {
-        this.#connect(options);
+        this.#reconnect(options);
+      }
+      else {
+        this.#client.destroy();
       }
     });
     this.#client.on('close', () => {
@@ -82,6 +85,10 @@ class Client {
         onSubmitWorkFail: null,
       });
     });
+  }
+
+  #reconnect(options) {
+    this.#client = this.#client.connect(options.port, options.server, () => this.#onConnect(options));
   }
 
   #start(options) {
