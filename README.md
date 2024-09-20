@@ -12,6 +12,7 @@ const Client = client({
   port: 3333,
   worker: "KorkyMonster.testing",
   password: "x",
+  ssl: false,
   autoReconnectOnError: true,
   onConnect: () => console.log('Connected to server'),
   onClose: () => console.log('Connection closed'),
